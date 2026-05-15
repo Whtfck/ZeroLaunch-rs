@@ -1,7 +1,7 @@
 use crate::core::image_processor::ImageIdentity;
 use crate::core::image_processor::ImageProcessor;
 use crate::modules::config::app_config::PartialAppConfig;
-use crate::modules::config::ui_config::PartialUiConfig;
+use crate::modules::config::ui_config::{PartialUiConfig, ThemeMode};
 use crate::modules::everything::config::PartialEverythingConfig;
 use crate::modules::shortcut_manager::shortcut_config::PartialShortcutConfig;
 use crate::state::app_state::AppState;
@@ -11,6 +11,7 @@ use std::sync::Arc;
 use tauri::Emitter;
 use tauri::Manager;
 use tauri::Runtime;
+use tracing::warn;
 
 #[tauri::command]
 pub async fn update_search_bar_window<R: Runtime>(
@@ -146,7 +147,23 @@ pub fn show_setting_window() -> Result<(), String> {
         Some(window) => window,
         None => return Err("Failed to get setting window".to_string()),
     };
+
+    // 根据前端主题设置设置窗口标题栏颜色
+    let theme_mode = state
+        .get_runtime_config()
+        .get_ui_config()
+        .get_frontend_theme_mode();
+    let window_theme = match theme_mode {
+        ThemeMode::Dark => Some(tauri::Theme::Dark),
+        ThemeMode::Light => Some(tauri::Theme::Light),
+        ThemeMode::System => None,
+    };
+    let _ = setting_window.set_theme(window_theme);
+
     let _ = setting_window.unminimize();
+    if let Err(e) = setting_window.center() {
+        warn!("设置窗口居中失败: {:?}", e);
+    }
     if let Err(e) = setting_window.show() {
         return Err(format!("Failed to show setting window: {:?}", e));
     }
@@ -156,6 +173,23 @@ pub fn show_setting_window() -> Result<(), String> {
     if let Err(e) = hide_window() {
         return Err(format!("Failed to hide window: {:?}", e));
     }
+    Ok(())
+}
+
+/// 设置指定窗口的标题栏主题
+#[tauri::command]
+pub fn set_window_theme(window_label: &str, theme: &str) -> Result<(), String> {
+    let state = ServiceLocator::get_state();
+    let window = match state.get_main_handle().get_webview_window(window_label) {
+        Some(window) => window,
+        None => return Err(format!("Failed to get window: {}", window_label)),
+    };
+    let window_theme = match theme {
+        "dark" => Some(tauri::Theme::Dark),
+        "light" => Some(tauri::Theme::Light),
+        _ => None,
+    };
+    let _ = window.set_theme(window_theme);
     Ok(())
 }
 

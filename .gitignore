@@ -33,3 +33,6 @@ package-lock.json
 *.zip
 
 target
+
+# Claude Code
+.claude/

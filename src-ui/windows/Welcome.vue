@@ -82,8 +82,11 @@ onMounted(async () => {
         const language = configStore.config.app_config.language;
         if (language) {
             await initializeLanguage(language);
-
         }
+        // 同步窗口标题栏主题
+        const mode = configStore.config.ui_config.frontend_theme_mode;
+        const themeArg = mode === 'dark' ? 'dark' : mode === 'light' ? 'light' : 'system';
+        invoke('set_window_theme', { windowLabel: 'welcome', theme: themeArg }).catch(() => {});
     } catch (error) {
         console.warn('Welcome页面语言初始化失败:', error);
         // 使用默认语言

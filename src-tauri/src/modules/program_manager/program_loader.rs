@@ -1129,7 +1129,7 @@ impl ProgramLoaderInner {
         }
 
         // 按分辨率从高到低排序
-        matching_icons.sort_by(|a, b| b.1.cmp(&a.1));
+        matching_icons.sort_by_key(|b| std::cmp::Reverse(b.1));
 
         // 返回分辨率最高的图标
         if let Some((highest_res_path, _)) = matching_icons.first() {

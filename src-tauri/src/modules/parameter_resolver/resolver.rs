@@ -145,7 +145,7 @@ impl ParameterResolver {
 
         // 4. 按照参数在模板中的位置，从后往前替换(避免位置偏移)
         let mut sorted_params = parameters.clone();
-        sorted_params.sort_by(|a, b| b.start_pos.cmp(&a.start_pos));
+        sorted_params.sort_by_key(|b| std::cmp::Reverse(b.start_pos));
 
         let mut result = template.to_string();
         for param in sorted_params {
